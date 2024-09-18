@@ -2,8 +2,10 @@ var express = require('express');
 var cors = require('cors');
 
 var { dbInit } = require('./data/mongo');
-var { newUser, editUser } = require('./routes/user');
+var { newUser, editUser, loginUser, removeUser } = require('./routes/user');
 var { retrieveReducedList } = require('./routes/heroes');
+var { updateCredit, cardSale } = require('./routes/credit');
+var { retrieveBartersForUser } = require('./routes/barters');
 
 const app = express();
 
@@ -21,10 +23,17 @@ dbInit().catch(err => {
  * Endpoints
  */
 
+app.get('/user', loginUser);
 app.post('/user', newUser);
 app.put('/user', editUser);
+app.delete('/user/:id', removeUser);
 
 app.get('/heroes/names', retrieveReducedList);
+
+app.post('/credit', updateCredit);
+app.post('/credit/card', cardSale);
+
+app.get('/barters/:uid', retrieveBartersForUser)
 
 // app.get("/places", async (req, res) => {
 //   await new Promise((resolve) => setTimeout(resolve, 3000));

@@ -15,6 +15,10 @@ exports.readUserByUsernameAndEmail = async function (username, email) {
 
 }
 
+exports.readUserByUsernameOrEmail = async function (username, email) {
+    
+}
+
 exports.updateUser = async function (user) {
 
 }
