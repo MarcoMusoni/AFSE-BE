@@ -1,50 +1,56 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
+var { MongoClient, ServerApiVersion } = require('mongodb');
 
 /** 
- * User CRUD
+ * User
  */
-export async function createUser(user) {
+exports.createUser = async function (user) {
 
 }
 
-export async function readUser(uid) {
+exports.readUserById = async function (uid) {
 
 }
 
-export async function updateUser(user) {
+exports.readUserByUsernameAndEmail = async function (username, email) {
 
 }
 
-export async function deleteUser(uid) {
+exports.updateUser = async function (user) {
+
+}
+
+exports.deleteUser = async function (uid) {
 
 }
 
 /**
- * Barters CRUD
+ * Barters
  */
 
-export async function createBarter(barter) {
+exports.createBarter = async function (barter) {
 
 }
 
-export async function readAllBarters() {
+exports.readAllBarters = async function () {
 
 }
 
-export async function updateBarter(barter) {
+exports.updateBarter = async function (barter) {
 
 }
 
-export async function deleteBarter(bid) {
+exports.deleteBarter = async function (bid) {
 
 }
 
 /**
  * Create MongoDb client and test connection
  */
-export const dbUri = 'mongodb://localhost:27017/AFSE';
+const uri = 'mongodb://localhost:27017/AFSE';
 
-export const dbClient = new MongoClient(dbUri, {
+exports.dbUri = uri;
+
+var dbClient = new MongoClient(uri, {
     serverApi: {
         version: ServerApiVersion.v1,
         strict: true,
@@ -52,12 +58,12 @@ export const dbClient = new MongoClient(dbUri, {
     }
 });
 
-export async function dbInit() {
+exports.dbInit = async function () {
     try {
         // connection test
         await dbClient.connect();
         await dbClient.db().command({ ping: 1 });
-        console.log('Database connected at: ' + dbUri);
+        console.log('Database connected at: ' + uri);
 
         // load dummy values
         console.log('Loaded data');

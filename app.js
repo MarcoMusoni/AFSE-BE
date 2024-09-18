@@ -1,16 +1,13 @@
-import fs from "node:fs/promises";
-
-import bodyParser from "body-parser";
-import express from "express";
-import { dbInit } from "./data/mongo";
-import { newUser } from "./routes/user";
-
+var express = require('express');
 var cors = require('cors');
+
+var { dbInit } = require('./data/mongo');
+var { newUser, editUser } = require('./routes/user');
+var { retrieveReducedList } = require('./routes/heroes');
 
 const app = express();
 
-app.use(express.static("images"));
-app.use(bodyParser.json());
+app.use(express.json());
 
 // CORS
 app.use(cors());
@@ -20,71 +17,79 @@ dbInit().catch(err => {
   console.log(err);
 });
 
+/*
+ * Endpoints
+ */
+
 app.post('/user', newUser);
+app.put('/user', editUser);
 
-app.get("/places", async (req, res) => {
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+app.get('/heroes/names', retrieveReducedList);
 
-  const fileContent = await fs.readFile("./data/places.json");
+// app.get("/places", async (req, res) => {
+//   await new Promise((resolve) => setTimeout(resolve, 3000));
 
-  const placesData = JSON.parse(fileContent);
+//   const fileContent = await fs.readFile("./data/places.json");
 
-  res.status(200).json({ places: placesData });
-});
+//   const placesData = JSON.parse(fileContent);
 
-app.get("/user-places", async (req, res) => {
-  const fileContent = await fs.readFile("./data/user-places.json");
+//   res.status(200).json({ places: placesData });
+// });
 
-  const places = JSON.parse(fileContent);
+// app.get("/user-places", async (req, res) => {
+//   const fileContent = await fs.readFile("./data/user-places.json");
 
-  res.status(200).json({ places });
-});
+//   const places = JSON.parse(fileContent);
 
-app.put("/user-places", async (req, res) => {
-  const placeId = req.body.placeId;
+//   res.status(200).json({ places });
+// });
 
-  const fileContent = await fs.readFile("./data/places.json");
-  const placesData = JSON.parse(fileContent);
+// app.put("/user-places", async (req, res) => {
+//   const placeId = req.body.placeId;
 
-  const place = placesData.find((place) => place.id === placeId);
+//   const fileContent = await fs.readFile("./data/places.json");
+//   const placesData = JSON.parse(fileContent);
 
-  const userPlacesFileContent = await fs.readFile("./data/user-places.json");
-  const userPlacesData = JSON.parse(userPlacesFileContent);
+//   const place = placesData.find((place) => place.id === placeId);
 
-  let updatedUserPlaces = userPlacesData;
+//   const userPlacesFileContent = await fs.readFile("./data/user-places.json");
+//   const userPlacesData = JSON.parse(userPlacesFileContent);
 
-  if (!userPlacesData.some((p) => p.id === place.id)) {
-    updatedUserPlaces = [...userPlacesData, place];
-  }
+//   let updatedUserPlaces = userPlacesData;
 
-  await fs.writeFile(
-    "./data/user-places.json",
-    JSON.stringify(updatedUserPlaces)
-  );
+//   if (!userPlacesData.some((p) => p.id === place.id)) {
+//     updatedUserPlaces = [...userPlacesData, place];
+//   }
 
-  res.status(200).json({ userPlaces: updatedUserPlaces });
-});
+//   await fs.writeFile(
+//     "./data/user-places.json",
+//     JSON.stringify(updatedUserPlaces)
+//   );
 
-app.delete("/user-places/:id", async (req, res) => {
-  const placeId = req.params.id;
+//   res.status(200).json({ userPlaces: updatedUserPlaces });
+// });
 
-  const userPlacesFileContent = await fs.readFile("./data/user-places.json");
-  const userPlacesData = JSON.parse(userPlacesFileContent);
+// app.delete("/user-places/:id", async (req, res) => {
+//   const placeId = req.params.id;
 
-  const placeIndex = userPlacesData.findIndex((place) => place.id === placeId);
+//   const userPlacesFileContent = await fs.readFile("./data/user-places.json");
+//   const userPlacesData = JSON.parse(userPlacesFileContent);
 
-  let updatedUserPlaces = userPlacesData;
+//   const placeIndex = userPlacesData.findIndex((place) => place.id === placeId);
 
-  if (placeIndex >= 0) {
-    updatedUserPlaces.splice(placeIndex, 1);
-  }
+//   let updatedUserPlaces = userPlacesData;
 
-  await fs.writeFile(
-    "./data/user-places.json",
-    JSON.stringify(updatedUserPlaces)
-  );
+//   if (placeIndex >= 0) {
+//     updatedUserPlaces.splice(placeIndex, 1);
+//   }
 
-  res.status(200).json({ userPlaces: updatedUserPlaces });
-});
+//   await fs.writeFile(
+//     "./data/user-places.json",
+//     JSON.stringify(updatedUserPlaces)
+//   );
+
+//   res.status(200).json({ userPlaces: updatedUserPlaces });
+// });
 
 app.listen(3000);
+console.log('Listening on: http://localhost:3000');
