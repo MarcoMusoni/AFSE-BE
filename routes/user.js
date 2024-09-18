@@ -30,7 +30,7 @@ exports.newUser = async function (req, res) {
           createUser(user)
             .then((user) =>
               res.status(201).json({
-                id: user._id,
+                id: user[0]._id,
               })
             )
             .catch((err) => console.log(err));

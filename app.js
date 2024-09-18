@@ -3,9 +3,10 @@ var cors = require('cors');
 
 var { dbInit } = require('./data/mongo');
 var { newUser, editUser, loginUser, removeUser } = require('./routes/user');
-var { retrieveReducedList } = require('./routes/heroes');
+var { retrieveReducedList, retrieveHeroesForUser } = require('./routes/heroes');
 var { updateCredit, cardSale } = require('./routes/credit');
-var { retrieveBartersForUser } = require('./routes/barters');
+var { retrieveBartersForUser, publishNewOffer } = require('./routes/barters');
+var { cardsUnboxing, cardsTrade } = require('./routes/cards');
 
 const app = express();
 
@@ -29,11 +30,16 @@ app.put('/user', editUser);
 app.delete('/user/:id', removeUser);
 
 app.get('/heroes/names', retrieveReducedList);
+app.get('/heroes/:uid', retrieveHeroesForUser)
 
 app.post('/credit', updateCredit);
 app.post('/credit/card', cardSale);
 
-app.get('/barters/:uid', retrieveBartersForUser)
+app.get('/barters/:uid', retrieveBartersForUser);
+app.post('/barters', publishNewOffer);
+
+app.post('/cards', cardsUnboxing);
+app.put('/cards', cardsTrade);
 
 // app.get("/places", async (req, res) => {
 //   await new Promise((resolve) => setTimeout(resolve, 3000));
