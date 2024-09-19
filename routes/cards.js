@@ -1,21 +1,25 @@
 const { getFromMarvel } = require("../data/marvel");
 const { readUserById, updateUser, deleteBarter } = require("../data/mongo");
 
-exports.cardsUnboxing = async function (req, res) {
+var express = require("express");
+var router = express.Router();
+
+router.post("/", function (req, res, next) {
   if (req.body.uid) {
     getFromMarvel()
       .then((response) => {
         readUserById(req.body.uid)
           .then((user) => {
+            console.log(">>> " + JSON.stringify(user));
             if (user.packs === 0) {
-              res.send(200).json({
+              res.json({
                 success: false,
               });
             }
             let heroes = response.data.results;
             if (user) {
               let newCards = [];
-              for (let i = 0; i < 5; i++) {
+              for (let i = 0; i < 6; i++) {
                 let randIndex = randomInt(heroes.length);
                 let hid = heroes[randIndex].id;
                 newCards = addCard(user.cards, hid);
@@ -26,11 +30,11 @@ exports.cardsUnboxing = async function (req, res) {
                 cards: newCards,
                 packs: newPacks,
               };
+              console.log(">>> " + JSON.stringify(newUser));
+
               updateUser(newUser)
                 .then(() =>
-                  res.send(200).json({
-                    success: true,
-                  })
+                  res.sendStatus(204)
                 )
                 .catch((err) => console.log(err));
             } else {
@@ -43,9 +47,9 @@ exports.cardsUnboxing = async function (req, res) {
   } else {
     res.sendStatus(400);
   }
-};
+});
 
-exports.cardsTrade = async function (req, res) {
+router.put("/", async function (req, res, next) {
   if (
     req.body.bid & req.body.uidIn &&
     req.body.uidOut &&
@@ -87,19 +91,13 @@ exports.cardsTrade = async function (req, res) {
               cards: cardsOut,
             };
 
-            updateUser(newUserIn)
+            updateUser(newUserIn);
+            updateUser(newuserOut);
+            deleteBarter(req.body.bid)
               .then(() =>
-                updateUser(newuserOut)
-                  .then(() =>
-                    deleteBarter(req.body.bid)
-                      .then(() =>
-                        res.status(200).json({
-                          success: true,
-                        })
-                      )
-                      .catch((err) => console.log(err))
-                  )
-                  .catch((err) => console.log(err))
+                res.json({
+                  success: true,
+                })
               )
               .catch((err) => console.log(err));
           })
@@ -109,7 +107,7 @@ exports.cardsTrade = async function (req, res) {
   } else {
     res.sendStatus(400);
   }
-};
+});
 
 function removeCards(cards, idsToRemove) {
   return cards.map((card) => {
@@ -151,3 +149,5 @@ function addCard(cards, hid) {
 function randomInt(max) {
   return Math.floor(Math.random() * max);
 }
+
+module.exports = router;

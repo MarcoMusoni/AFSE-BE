@@ -1,19 +1,27 @@
 const { readAllBarters, readUserById, createBarter } = require("../data/mongo");
 
-exports.retrieveBartersForUser = async function (req, res) {
+var express = require("express");
+var router = express.Router();
+
+router.get('/:uid', function (req, res, next) {
   if (req.params.uid) {
     readAllBarters()
       .then((barters) => {
         if (barters) {
-          readUserById(uid)
+          readUserById(req.params.uid)
             .then((user) => {
               if (user) {
                 let result = barters.map((barter) => {
-                  if (!user.cards.some((card) => barter.in.includes(card.id))) {
-                    return barter;
+                  if (!user.cards.some((card) => card.amount > 0 && barter.in.includes(card.id))) {
+                    return {
+                      uid: barter.uid,
+                      id: barter._id,
+                      in: barter.in,
+                      out: barter.out
+                    };
                   }
                 });
-                res.send(200).json({
+                res.json({
                   offers: result,
                 });
               } else {
@@ -29,9 +37,9 @@ exports.retrieveBartersForUser = async function (req, res) {
   } else {
     res.sendStatus(400);
   }
-};
+});
 
-exports.publishNewOffer = async function (req, res) {
+router.post('/', function (req, res, next) {
   if (req.body.uid && req.body.in && req.body.out) {
     let barter = {
       uid: req.body.uid,
@@ -42,7 +50,7 @@ exports.publishNewOffer = async function (req, res) {
       .then((barter) => {
         if (barter) {
           res.status(201).json({
-            barterCode: barter[0]._id,
+            barterCode: barter.insertedId,
           });
         } else {
           res.sendStatus(404);
@@ -52,4 +60,6 @@ exports.publishNewOffer = async function (req, res) {
   } else {
     res.sendStatus(400);
   }
-};
+});
+
+module.exports = router;

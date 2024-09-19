@@ -1,4 +1,4 @@
-var { MongoClient, ServerApiVersion, UUID, ObjectId } = require("mongodb");
+var { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 /**
  * Create MongoDb client and test connection
@@ -24,9 +24,6 @@ exports.dbInit = async function () {
     await dbClient.connect();
     await dbClient.db().command({ ping: 1 });
     console.log("Database connected at: " + uri);
-
-    // load dummy values
-    console.log("Loaded data");
   } finally {
     dbClient.close();
   }
@@ -39,7 +36,7 @@ exports.createUser = async function (user) {
   var dbClient = makeClient();
   const dbUser = dbClient.db().collection("Users");
   try {
-    return await dbUser.insert([user]);
+    return await dbUser.insertOne(user);
   } finally {
     dbClient.close();
   }
@@ -93,7 +90,8 @@ exports.updateUser = async function (user) {
   var dbClient = makeClient();
   const dbUser = dbClient.db().collection("Users");
   try {
-    await dbUser.insert([user]);
+    console.log(">>>" + user);
+    await dbUser.replaceOne({ _id: new ObjectId(user._id) }, user);
   } finally {
     dbClient.close();
   }
@@ -120,7 +118,7 @@ exports.createBarter = async function (barter) {
   var dbClient = makeClient();
   const dbBarters = dbClient.db().collection("Barters");
   try {
-    return await dbBarters.insert([barter]);
+    return await dbBarters.insertOne(barter);
   } finally {
     dbClient.close();
   }
@@ -130,23 +128,29 @@ exports.readAllBarters = async function () {
   var dbClient = makeClient();
   const dbBarters = dbClient.db().collection("Barters");
 
+  var list = [];
+  
   try {
-    var list = [];
     const cursor = dbBarters.find({});
-    while (cursor.hasNext()) {
-      list.push(cursor.next());
+    
+    let item;
+    while (await cursor.hasNext()) {
+      item = await cursor.next();
+      list.push(item);
     }
-    return list;
+    await cursor.close();
   } finally {
     dbClient.close();
   }
+  
+  return list;
 };
 
 exports.updateBarter = async function (barter) {
   var dbClient = makeClient();
   const dbBarters = dbClient.db().collection("Barters");
   try {
-    await dbBarters.insert([barter]);
+    await dbBarters.replaceOne(barter);
   } finally {
     dbClient.close();
   }

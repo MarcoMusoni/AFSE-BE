@@ -7,7 +7,11 @@ var {
   deleteUser,
 } = require("../data/mongo");
 
-exports.newUser = async function (req, res) {
+var express = require("express");
+var router = express.Router();
+
+router.post('/', function (req, res, next) {
+  console.log(">>> " + JSON.stringify(req.body));
   if (
     req.body &&
     req.body.username &&
@@ -17,6 +21,7 @@ exports.newUser = async function (req, res) {
   ) {
     readUserByUsernameAndEmail(req.body.username, req.body.email)
       .then((user) => {
+        console.log(">>> " + user);
         if (!user) {
           let user = {
             username: req.body.username,
@@ -28,11 +33,12 @@ exports.newUser = async function (req, res) {
             cards: [],
           };
           createUser(user)
-            .then((user) =>
-              res.status(201).json({
-                id: user[0]._id,
-              })
-            )
+            .then((created) => {
+              console.log('>>> ' + JSON.stringify(created));
+              res.json({
+                id: created.insertedId,
+              });
+            })
             .catch((err) => console.log(err));
         } else {
           res.sendStatus(400);
@@ -42,9 +48,9 @@ exports.newUser = async function (req, res) {
   } else {
     res.sendStatus(400);
   }
-};
+});
 
-exports.editUser = async function (req, res) {
+router.put('/', function (req, res, next) {
   if (req.body && req.body.id) {
     readUserById(req.body.id)
       .then((user) => {
@@ -67,9 +73,9 @@ exports.editUser = async function (req, res) {
   } else {
     res.sendStatus(400);
   }
-};
+});
 
-exports.removeUser = async function (req, res) {
+router.delete('/:id', function (req, res, next) {
   if (req.params.id && req.headers.password) {
     readUserById(req.params.id)
       .then((user) => {
@@ -89,15 +95,21 @@ exports.removeUser = async function (req, res) {
   } else {
     res.sendStatus(400);
   }
-};
+});
 
-exports.loginUser = async function (req, res) {
+router.get('/', function (req, res, next) {
   if (req.headers.password && (req.headers.username || req.headers.email)) {
     readUserByUsernameOrEmail(req.headers.username, req.headers.email)
       .then((user) => {
+        console.log('>>> ' + JSON.stringify(req.headers));
+        console.log('>>> ' + JSON.stringify(user));
         if (user) {
           if (user.password === req.headers.password) {
-            res.status(200).json(user._id);
+            res.status(200).json({
+              uid: user._id,
+              credits: user.credits,
+              packs: user.packs
+            });
           } else {
             res.sendStatus(401);
           }
@@ -109,4 +121,6 @@ exports.loginUser = async function (req, res) {
   } else {
     res.sendStatus(400);
   }
-};
+});
+
+module.exports = router;

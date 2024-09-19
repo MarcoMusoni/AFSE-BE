@@ -1,6 +1,9 @@
 var { readUserById, updateUser } = require("../data/mongo");
 
-exports.updateCredit = async function (req, res) {
+var express = require("express");
+var router = express.Router();
+
+router.post('/', function (req, res, next) {
   if (req.body.id && req.body.credits) {
     if (req.body.credits < 0 && !req.body.packs) {
       res.sendStatus(400);
@@ -17,20 +20,20 @@ exports.updateCredit = async function (req, res) {
           };
           updateUser(newUser).then(() => {
             if (req.body.credits < 0) {
-              res.send(200).json({
+              res.json({
                 newCreditAmount: newCredits,
                 newPacksAmount: newPacks
               });
             } else {
               console.log(
                 "[" +
-                  Date.now().toLocaleString() +
-                  "]" +
+                  new Date().toLocaleString() +
+                  "] " +
                   req.body.id +
                   " - " +
                   req.body.credits
               );
-              res.send(200).json({
+              res.json({
                 newCreditAmount: newCredits,
               });
             }
@@ -43,14 +46,14 @@ exports.updateCredit = async function (req, res) {
   } else {
     res.sendStatus(400);
   }
-};
+});
 
-exports.cardSale = async function (req, res) {
+router.post('/card', function (req, res, next) {
   if (req.body.uid && req.body.id) {
     readUserById(req.body.uid)
       .then((user) => {
         let newCard = user.cards.filter((card) => card.id === req.body.id)[0];
-        let newCardAmount = card.amount === 0 ? 0 : card.amount - 1;
+        let newCardAmount = newCard.amount === 0 ? 0 : newCard.amount - 1;
         newCard = {
           ...newCard,
           amount: newCardAmount,
@@ -69,7 +72,7 @@ exports.cardSale = async function (req, res) {
           cards: newCards,
         };
         updateUser(newUser).then(() =>
-          res.send(200).json({
+          res.json({
             newCardAmount: newCardAmount,
             newCreditAmount: newCredits,
           })
@@ -79,4 +82,6 @@ exports.cardSale = async function (req, res) {
   } else {
     res.sendStatus(400);
   }
-};
+});
+
+module.exports = router;
