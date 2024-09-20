@@ -36,7 +36,7 @@ router.post("/", function (req, res, next) {
               updateUser(newUser)
                 .then(() =>
                   res.json({
-                    success: true
+                    success: true,
                   })
                 )
                 .catch((err) => console.log(err));
@@ -54,7 +54,8 @@ router.post("/", function (req, res, next) {
 
 router.put("/", async function (req, res, next) {
   if (
-    req.body.bid & req.body.uidIn &&
+    req.body.bid &&
+    req.body.uidIn &&
     req.body.uidOut &&
     req.body.offer &&
     req.body.offer.in &&
@@ -68,22 +69,43 @@ router.put("/", async function (req, res, next) {
               res.sendStatus(404);
             }
 
-            let last = req.body.offer.in.pop();
-            let cardsIn = addCard(userIn.cards, last);
-            req.body.offer.in.forEach((hid) => {
-              cardsIn = addCard(cardsIn, hid);
-            });
-            req.body.offer.in.push(last);
+            let inA = req.body.offer.in;
+            let outA = req.body.offer.out;
 
-            last = req.body.offer.out.pop();
-            let cardsOut = addCard(userIn.cards, last);
-            req.body.offer.out.forEach((hid) => {
-              cardsOut = addCard(cardsOut, hid);
-            });
-            req.body.offer.out.push(last);
+            let cardsIn = userIn.cards;
+            let cardsOut = userOut.cards;
 
-            cardsIn = removeCards(cardsIn, req.body.offer.out);
-            cardsOut = removeCards(cardsIn, req.body.offer.in);
+            inA.forEach((cid) => {
+              cardsOut.forEach((card) => {
+                if (card.id === cid)
+                  card.amount = card.amount > 0 ? card.amount - 1 : 0;
+              });
+              let found = cardsIn.find((c) => c.id === cid);
+              if (found) {
+                found.amount = found.amount + 1;
+              } else {
+                cardsIn.push({
+                  id: cid,
+                  amount: 1,
+                });
+              }
+            });
+
+            outA.forEach((cid) => {
+              cardsIn.forEach((card) => {
+                if (card.id === cid)
+                  card.amount = card.amount > 0 ? card.amount - 1 : 0;
+              });
+              let found = cardsOut.find((c) => c.id === cid);
+              if (found) {
+                found.amount = found.amount + 1;
+              } else {
+                cardsOut.push({
+                  id: cid,
+                  amount: 1,
+                });
+              }
+            });
 
             let newUserIn = {
               ...userIn,
