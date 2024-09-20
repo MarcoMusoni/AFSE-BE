@@ -12,7 +12,13 @@ router.get('/:uid', function (req, res, next) {
             .then((user) => {
               if (user) {
                 let result = barters.map((barter) => {
-                  if (!user.cards.some((card) => card.amount > 0 && barter.in.includes(card.id))) {
+                  console.log('>>> barter uid ' + barter.uid);
+                  console.log('>>> user _id hex ' + user._id.toString('hex'));
+                  console.log('>>> user _id base64 ' + user._id.toString('base64'));
+                  console.log('>>> if ' + barter.uid !== user._id.toString('hex'));
+                  console.log('>>> if ' + barter.uid === user._id.toString('hex'));
+                  
+                  if ((barter.uid !== user._id.toString('hex')) && !user.cards.some((card) => card.amount > 0 && barter.in.includes(card.id))) {
                     return {
                       uid: barter.uid,
                       id: barter._id,
