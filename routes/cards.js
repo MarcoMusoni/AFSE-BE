@@ -15,6 +15,7 @@ router.post("/", function (req, res, next) {
               res.json({
                 success: false,
               });
+              return;
             }
             let heroes = response.data.results;
             if (user) {
@@ -34,7 +35,9 @@ router.post("/", function (req, res, next) {
 
               updateUser(newUser)
                 .then(() =>
-                  res.sendStatus(204)
+                  res.json({
+                    success: true
+                  })
                 )
                 .catch((err) => console.log(err));
             } else {
